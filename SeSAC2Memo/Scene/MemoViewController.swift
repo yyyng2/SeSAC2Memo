@@ -6,8 +6,20 @@
 //
 
 import UIKit
+import RealmSwift
 
 class MemoViewController: BaseViewController{
+    //레포지토리 인스턴스 생성
+    let repository = UserMemoRepository()
+    //didSet
+    var tasks: Results<UserMemo>! {
+        didSet {
+            mainView.tableView.reloadData()
+            print("Tasks Changed")
+        }
+    }
+    
+    var titleCount = 0
     
     let searchBar: UISearchController = {
        let bar = UISearchController()
@@ -15,15 +27,6 @@ class MemoViewController: BaseViewController{
         bar.searchBar.setValue("취소", forKey: "cancelButtonText")
         return bar
     }()
-    
-//    var toolBar: UIToolbar = {
-//        let bar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 100))
-//        let writeItem = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: MemoViewController.self, action: #selector(writeItemTapped))
-//        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: MemoViewController.self, action: nil)
-//        bar.items = [flexibleSpace, writeItem]
-//        bar.sizeToFit()
-//        return bar
-//    }()
     
     let mainView = MemoView()
     
@@ -51,17 +54,25 @@ class MemoViewController: BaseViewController{
         mainView.tableView.register(MemoTableViewCell.self, forCellReuseIdentifier: MemoTableViewCell.reuseIdentifier)
         
     }
+    override func viewWillAppear(_ animated: Bool) {
+        fetchRealm()
+        setNavigationUI()
+    }
     
     @objc func writeItemTapped(){
         let vc = MemoWriteViewController()
         self.navigationController?.navigationBar.prefersLargeTitles = false
-        self.navigationController?.pushViewController(vc, animated: true)
+        transition(vc, transitionStyle: .push)
     }
     
     @objc func backButtonTapped(){
         //백버튼탭 라지텍스트로 안돌아옴.. 완료버튼은 작동
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
+    }
+    
+    func fetchRealm() {
+        tasks = repository.fetch()
     }
     
     
@@ -81,14 +92,24 @@ class MemoViewController: BaseViewController{
         self.navigationController?.toolbar.backgroundColor = Constants.BaseColor.background
         setToolbarItems([flexibleSpace, writeItem], animated: true)
         
-        
         self.navigationItem.searchController = searchBar
-        self.navigationItem.title = "000개의 메모"
+ 
         self.navigationController?.navigationBar.prefersLargeTitles = true
         
         let backBarButtonItem = UIBarButtonItem(title: "메모", style: .plain, target: self, action: #selector(backButtonTapped))
         backBarButtonItem.tintColor = .orange
         self.navigationItem.backBarButtonItem = backBarButtonItem
+        
+        fetchRealm()
+        if tasks.count <= 0 {
+            titleCount = 0
+            self.navigationItem.title = "\(titleCount)개의 메모"
+        } else {
+            titleCount = tasks.count
+            self.navigationItem.title = "\(titleCount)개의 메모"
+        }
+        
+       
     }
     
 
@@ -121,17 +142,23 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        if section == 0{
+            return 5
+        } else {
+            return 5
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MemoTableViewCell.reuseIdentifier, for: indexPath) as? MemoTableViewCell else { return UITableViewCell() }
         if indexPath.section == 0{
             cell.titleLabel.text = "test"
-            cell.titleLabel.textColor = .white
+            cell.dateLabel.text = "2022.02.02 오후 02:02"
+            cell.contentLabel.text = "asdfasdfasdfasfasdfasf"
         }
         cell.titleLabel.text = "test"
-        cell.titleLabel.textColor = .white
+        
+//        cell.setData(data: tasks[indexPath.row])
         return cell
     }
     
@@ -139,13 +166,13 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         
         let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
             
-//            self.repository.updateFavorite(record: self.tasks[indexPath.row])
-//
+            self.repository.updatePin(record: self.tasks[indexPath.row])
+
 //            self.fetchRealm()
             
         }
-//        let image = tasks[indexPath.row].favorite ? "pin.fill" : "pin"
-//        pin.image = UIImage(systemName: image)
+        let image = tasks[indexPath.row].pin ? "pin.fill" : "pin"
+        pin.image = UIImage(systemName: image)
         pin.backgroundColor = .orange
         
         return UISwipeActionsConfiguration(actions: [pin])

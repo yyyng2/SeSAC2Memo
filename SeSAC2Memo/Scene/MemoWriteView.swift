@@ -33,19 +33,26 @@ class MemoWriteView: BaseView{
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
     }
     
+    //키보드 높이만큼...how?
     @objc func keyboardWillShow(notification: NSNotification) {
         if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let keyboardRectangle = keyboardFrame.cgRectValue
             let keyboardHeight = keyboardRectangle.height
-//            memoTextView.frame.height = keyboardHeight
+
         }
     }
     
     override func setConstraints() {
 
         memoTextView.snp.makeConstraints { make in
-            make.edges.equalTo(self.safeAreaLayoutGuide).offset(20)
+            make.top.left.right.equalTo(self.safeAreaLayoutGuide).offset(20)
+            make.height.equalTo(self.safeAreaLayoutGuide).multipliedBy(0.55)
         }
+
        
     }
+    
+  
+    
+   
 }
