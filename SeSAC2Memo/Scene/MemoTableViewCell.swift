@@ -17,17 +17,28 @@ class MemoTableViewCell: BaseTableViewCell{
     let dateLabel: UILabel = {
        let label = UILabel()
         label.textColor = .systemGray3
+        label.font = .boldSystemFont(ofSize: 12)
         return label
     }()
     let contentLabel: UILabel = {
        let label = UILabel()
         label.textColor = .systemGray3
+        label.font = .boldSystemFont(ofSize: 12)
         return label
+    }()
+    
+    lazy var stackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [dateLabel, contentLabel])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.distribution = .fillEqually
+        view.spacing = 8
+        return view
     }()
     
     override func configure() {
         backgroundColor = Constants.BaseColor.background
-        [titleLabel, dateLabel, contentLabel].forEach {
+        [titleLabel, stackView].forEach {
             contentView.addSubview($0)
         }
     }
@@ -37,14 +48,9 @@ class MemoTableViewCell: BaseTableViewCell{
             make.centerY.equalTo(safeAreaLayoutGuide).multipliedBy(0.7)
             make.left.equalTo(safeAreaLayoutGuide).offset(20)
         }
-        dateLabel.snp.makeConstraints { make in
+        stackView.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(8)
             make.left.equalTo(safeAreaLayoutGuide).offset(20)
-        }
-        contentLabel.snp.makeConstraints { make in
-            make.centerY.equalTo(dateLabel.snp.centerY)
-            make.left.equalTo(dateLabel.snp.right).offset(8)
-            make.right.equalTo(safeAreaLayoutGuide).offset(4)
         }
     }
     

@@ -19,6 +19,12 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    func format(for number: Int) -> String{
+        let numberFormat = NumberFormatter()
+        numberFormat.numberStyle = .decimal
+        return numberFormat.string(for: number)!
+    }
+    
     var titleCount = 0
     
     let searchBar: UISearchController = {
@@ -106,7 +112,8 @@ class MemoViewController: BaseViewController{
             self.navigationItem.title = "\(titleCount)개의 메모"
         } else {
             titleCount = tasks.count
-            self.navigationItem.title = "\(titleCount)개의 메모"
+            let stringText = self.format(for: titleCount)
+            self.navigationItem.title = "\(stringText)개의 메모"
         }
         
        
@@ -155,8 +162,13 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             cell.titleLabel.text = "test"
             cell.dateLabel.text = "2022.02.02 오후 02:02"
             cell.contentLabel.text = "asdfasdfasdfasfasdfasf"
+        } else {
+            cell.titleLabel.text = tasks[indexPath.row].title
+            cell.contentLabel.text = tasks[indexPath.row].content
+            cell.dateLabel.text = "\(tasks[indexPath.row].regdate)"
+            cell.dateLabel.sizeToFit()
         }
-        cell.titleLabel.text = "test"
+      
         
 //        cell.setData(data: tasks[indexPath.row])
         return cell
