@@ -11,6 +11,9 @@ import RealmSwift
 
 protocol UserMemoRepositoryType{
     func fetchFilter() -> Results<UserMemo>
+    func fetchFilterPinned() -> Results<UserMemo>
+    func fetchFilterUnPinned() -> Results<UserMemo>
+//    func deleteFilterId(id: ObjectId)
     func fetch() -> Results<UserMemo>
     func updatePin(record: UserMemo)
     func deleteRecord(record: UserMemo)
@@ -18,6 +21,8 @@ protocol UserMemoRepositoryType{
 }
 
 class UserMemoRepository: UserMemoRepositoryType{
+ 
+    
     
     //여러 곳에서 생성해도 하나의 Realm에 접근
     let localRealm = try! Realm() // struct
@@ -40,6 +45,25 @@ class UserMemoRepository: UserMemoRepositoryType{
         return localRealm.objects(UserMemo.self).filter("diaryTitle CONTAINS[c] 'a'")
     }
     
+    func fetchFilterPinned() -> Results<UserMemo>{
+        return localRealm.objects(UserMemo.self).filter("pin == true")
+    }
+    func fetchFilterUnPinned() -> Results<UserMemo>{
+        return localRealm.objects(UserMemo.self).filter("pin == false")
+    }
+    
+    func deleteById(id: ObjectId){
+//        let task = localRealm.objects(UserMemo.self).filter("objectId == \(id)")
+        let user = localRealm.object(ofType: UserMemo.self, forPrimaryKey: id)
+        do{
+            try localRealm.write{
+                localRealm.delete(user!)
+            }
+        }catch let error {
+            print(error)
+        }
+    }
+    
     func updatePin(record: UserMemo) {
         do{
             try localRealm.write {
@@ -53,9 +77,12 @@ class UserMemoRepository: UserMemoRepositoryType{
     }
     
     func deleteRecord(record: UserMemo){
-  
-        try! localRealm.write{
-            localRealm.delete(record)
+        do{
+            try localRealm.write{
+                localRealm.delete(record)
+            }
+        }catch let error {
+            print(error)
         }
     }
     

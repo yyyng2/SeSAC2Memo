@@ -19,6 +19,19 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    var pinned: Results<UserMemo>!{
+        didSet {
+            mainView.tableView.reloadData()
+            print("Tasks Changed")
+        }
+    }
+    var unPinned: Results<UserMemo>!{
+        didSet {
+            mainView.tableView.reloadData()
+            print("Tasks Changed")
+        }
+    }
+    
     func format(for number: Int) -> String{
         let numberFormat = NumberFormatter()
         numberFormat.numberStyle = .decimal
@@ -58,7 +71,6 @@ class MemoViewController: BaseViewController{
         mainView.tableView.delegate = self
         mainView.tableView.dataSource = self
         mainView.tableView.register(MemoTableViewCell.self, forCellReuseIdentifier: MemoTableViewCell.reuseIdentifier)
-        
     }
     override func viewWillAppear(_ animated: Bool) {
         fetchRealm()
@@ -79,6 +91,11 @@ class MemoViewController: BaseViewController{
     
     func fetchRealm() {
         tasks = repository.fetch()
+        pinned = repository.fetchFilterPinned()
+        unPinned = repository.fetchFilterUnPinned()
+        mainView.tableView.reloadData()
+//        print("tasks",tasks)
+//        print("unPinned",unPinned![0].title)
     }
     
     
@@ -142,45 +159,56 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if section == 0{
-            return "고정된 메모"
+            return pinned.count <= 0 ? "" : "고정된 메모"
         } else {
-            return "메모"
+            return unPinned.count <= 0 ? "" : "메모"
         }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0{
-            return 5
+            return pinned.count <= 0 ? 0 : pinned.count
         } else {
-            return 5
+            return unPinned.count <= 0 ? 0 : unPinned.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MemoTableViewCell.reuseIdentifier, for: indexPath) as? MemoTableViewCell else { return UITableViewCell() }
-        if indexPath.section == 0{
-            cell.titleLabel.text = "test"
-            cell.dateLabel.text = "2022.02.02 오후 02:02"
-            cell.contentLabel.text = "asdfasdfasdfasfasdfasf"
-        } else {
-            cell.titleLabel.text = tasks[indexPath.row].title
-            cell.contentLabel.text = tasks[indexPath.row].content
-            cell.dateLabel.text = "\(tasks[indexPath.row].regdate)"
-            cell.dateLabel.sizeToFit()
-        }
-      
         
-//        cell.setData(data: tasks[indexPath.row])
+        if indexPath.section == 0{
+            if pinned.count > 0 {
+                cell.titleLabel.text = pinned![indexPath.row].title
+                cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
+                cell.contentLabel.text = pinned![indexPath.row].content!
+            }
+        } else {
+            if unPinned.count > 0{
+                cell.titleLabel.text = unPinned[indexPath.row].title
+                cell.titleLabel.textColor = .white
+                cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
+                cell.contentLabel.text = unPinned[indexPath.row].content!
+            }
+        }
+        
+
+      
         return cell
     }
+    
+
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
             
-            self.repository.updatePin(record: self.tasks[indexPath.row])
-
-//            self.fetchRealm()
+            if indexPath.section == 0 {
+                self.repository.updatePin(record: self.pinned[indexPath.row])
+                self.fetchRealm()
+            } else {
+                self.repository.updatePin(record: self.unPinned[indexPath.row])
+                self.fetchRealm()
+            }
             
         }
         let image = tasks[indexPath.row].pin ? "pin.fill" : "pin"
@@ -193,20 +221,29 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         
-            let delete = UIContextualAction(style: .normal, title: "삭제") { action, view, completionHandler in
-                let alert = UIAlertController(title: nil, message: "삭제하시겠습니까?", preferredStyle: .alert)
-                let okay = UIAlertAction(title: "삭제", style: .destructive) {_ in
-                    //            self.repository.deleteRecord(record: self.tasks[indexPath.row])
-                    //
-                    //            self.fetchRealm()
+        let delete = UIContextualAction(style: .normal, title: "삭제") { action, view, completionHandler in
+            
+            let alert = UIAlertController(title: nil, message: "삭제하시겠습니까?", preferredStyle: .alert)
+            
+            let okay = UIAlertAction(title: "삭제", style: .destructive) {_ in
+                if indexPath.section == 0 {
+                    let task = self.pinned![indexPath.row].objectId
+                    self.repository.deleteById(id: task)
+                    self.fetchRealm()
+                } else {
+                    let task = self.unPinned![indexPath.row].objectId
+                    self.repository.deleteById(id: task)
+                    self.fetchRealm()
                 }
-                let cancel = UIAlertAction(title: "취소", style: .cancel)
-                alert.addAction(okay)
-                alert.addAction(cancel)
-                self.present(alert, animated: true)
+               
             }
-            delete.backgroundColor = .red
-            return UISwipeActionsConfiguration(actions: [delete])
+            let cancel = UIAlertAction(title: "취소", style: .cancel)
+            alert.addAction(okay)
+            alert.addAction(cancel)
+            self.present(alert, animated: true)
+        }
+        delete.backgroundColor = .red
+        return UISwipeActionsConfiguration(actions: [delete])
       
     }
     

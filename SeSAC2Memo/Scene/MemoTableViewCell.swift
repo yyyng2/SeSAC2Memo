@@ -6,8 +6,12 @@
 //
 
 import UIKit
+import SwiftUI
 
 class MemoTableViewCell: BaseTableViewCell{
+    
+    let repository = UserMemoRepository()
+    
     let titleLabel: UILabel = {
        let label = UILabel()
         label.textColor = .white
@@ -47,11 +51,13 @@ class MemoTableViewCell: BaseTableViewCell{
         titleLabel.snp.makeConstraints { make in
             make.centerY.equalTo(safeAreaLayoutGuide).multipliedBy(0.7)
             make.left.equalTo(safeAreaLayoutGuide).offset(20)
+            make.right.equalTo(safeAreaLayoutGuide).offset(20)
         }
         stackView.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(8)
             make.left.equalTo(safeAreaLayoutGuide).offset(20)
         }
     }
+    
     
 }
