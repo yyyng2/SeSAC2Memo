@@ -46,10 +46,10 @@ class UserMemoRepository: UserMemoRepositoryType{
     }
     
     func fetchFilterPinned() -> Results<UserMemo>{
-        return localRealm.objects(UserMemo.self).filter("pin == true")
+        return localRealm.objects(UserMemo.self).filter("pin == true").sorted(byKeyPath: "regdate", ascending: false)
     }
     func fetchFilterUnPinned() -> Results<UserMemo>{
-        return localRealm.objects(UserMemo.self).filter("pin == false")
+        return localRealm.objects(UserMemo.self).filter("pin == false").sorted(byKeyPath: "regdate", ascending: false)
     }
     
     func deleteById(id: ObjectId){

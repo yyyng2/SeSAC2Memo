@@ -10,6 +10,8 @@ import RealmSwift
 
 class MemoWriteViewController: BaseViewController{
     
+    var memo: UserMemo?
+    
     let repository = UserMemoRepository()
     
     var titleText = ""

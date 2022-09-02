@@ -84,7 +84,7 @@ class MemoViewController: BaseViewController{
     }
     
     @objc func backButtonTapped(){
-        //백버튼탭 라지텍스트로 안돌아옴.. 완료버튼은 작동
+        //백버튼탭눌러서 팝 할시 메인화면타이틀 라지텍스트로 안돌아옴.. 완료버튼은 정상 작동
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
     }
@@ -94,8 +94,6 @@ class MemoViewController: BaseViewController{
         pinned = repository.fetchFilterPinned()
         unPinned = repository.fetchFilterUnPinned()
         mainView.tableView.reloadData()
-//        print("tasks",tasks)
-//        print("unPinned",unPinned![0].title)
     }
     
     
@@ -178,23 +176,26 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         
         if indexPath.section == 0{
             if pinned.count > 0 {
+                let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
                 cell.titleLabel.text = pinned![indexPath.row].title
                 cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
-                cell.contentLabel.text = pinned![indexPath.row].content!
+                cell.contentLabel.text = trimString
             }
         } else {
             if unPinned.count > 0{
+                let trimString = unPinned![indexPath.row].content!.filter {!"\n".contains($0)}
                 cell.titleLabel.text = unPinned[indexPath.row].title
-                cell.titleLabel.textColor = .white
                 cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
-                cell.contentLabel.text = unPinned[indexPath.row].content!
+                cell.contentLabel.text = trimString
             }
         }
         
-
-      
         return cell
     }
+    
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        <#code#>
+//    }
     
 
     

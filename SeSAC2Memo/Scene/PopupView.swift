@@ -22,7 +22,7 @@ class PopupView: BaseView{
         label.text = """
                     처음 오셨군요!
                     환영합니다. :)
-                    당신만의 메로를 작성하고
+                    당신만의 메모를 작성하고
                     관리해보세요!
                     """
         return label
