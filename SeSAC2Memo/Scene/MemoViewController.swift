@@ -206,7 +206,14 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                 self.repository.updatePin(record: self.pinned[indexPath.row])
                 self.fetchRealm()
             } else {
-                self.repository.updatePin(record: self.unPinned[indexPath.row])
+                if self.pinned.count < 5 {
+                    self.repository.updatePin(record: self.unPinned[indexPath.row])
+                    self.fetchRealm()
+                } else {
+                    self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
+                    return
+                }
+               
                 self.fetchRealm()
             }
             
