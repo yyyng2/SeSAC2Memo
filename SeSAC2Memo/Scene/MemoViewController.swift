@@ -293,15 +293,22 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
-   
-
         if self.searchStatus == false {
-            let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
-                
-                if indexPath.section == 0 {
+            
+            if indexPath.section == 0 {
+                let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
                     self.repository.updatePin(record: self.pinned[indexPath.row])
                     self.fetchRealm()
-                } else {
+                }
+                
+                let image = self.pinned[indexPath.row].pin ? "pin.fill" : "pin"
+                pin.image = UIImage(systemName: image)
+                pin.backgroundColor = .orange
+                
+                return UISwipeActionsConfiguration(actions: [pin])
+                
+            } else {
+                let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
                     if self.pinned.count < 5 {
                         self.repository.updatePin(record: self.unPinned[indexPath.row])
                         self.fetchRealm()
@@ -312,36 +319,35 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                     
                     self.fetchRealm()
                 }
+                let image = self.unPinned[indexPath.row].pin ? "pin.fill" : "pin"
+                pin.image = UIImage(systemName: image)
+                pin.backgroundColor = .orange
                 
+                return UISwipeActionsConfiguration(actions: [pin])
                 
             }
-            let image = self.tasks[indexPath.row].pin ? "pin.fill" : "pin"
-            pin.image = UIImage(systemName: image)
-            pin.backgroundColor = .orange
             
-            return UISwipeActionsConfiguration(actions: [pin])
             
         } else {
             let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
                 if self.pinned.count < 5 {
                     self.repository.updatePin(record: self.searchResults[indexPath.row])
                     self.fetchRealm()
-                    self.repository.fetchFilterPinned()
                 } else {
                     self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
                     return
                 }
                 
                 self.fetchRealm()
+                
             }
-                
-                
             
-            let image = self.tasks[indexPath.row].pin ? "pin.fill" : "pin"
+            let image = self.searchResults[indexPath.row].pin ? "pin.fill" : "pin"
             pin.image = UIImage(systemName: image)
             pin.backgroundColor = .orange
             
             return UISwipeActionsConfiguration(actions: [pin])
+            
         }
         
        
