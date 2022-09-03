@@ -39,6 +39,8 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    let dateFormatter = DateFormatter()
+    
     var searchKeyword = ""
     
     var searchStatus = false
@@ -104,6 +106,7 @@ class MemoViewController: BaseViewController{
     }
     
     func fetchRealm() {
+        print(Realm.Configuration.defaultConfiguration.fileURL)
         tasks = repository.fetch()
         pinned = repository.fetchFilterPinned()
         unPinned = repository.fetchFilterUnPinned()
@@ -115,6 +118,25 @@ class MemoViewController: BaseViewController{
         searchResults = results
         fetchRealm()
        
+    }
+    
+    func dateCal(date: Date, task: Results<UserMemo>, tag: IndexPath, label: UILabel){
+        let distance = Calendar.current.dateComponents([.hour], from: task[tag.row].regdate, to: Date()).hour
+        dateFormatter.locale = Locale(identifier: "ko_KR")
+        print(distance)
+        if distance! < 24{
+            dateFormatter.dateFormat = "a hh:mm"
+            let date = dateFormatter.string(from: task[tag.row].regdate)
+            label.text = "\(date)"
+        } else if distance! < 168 {
+            dateFormatter.dateFormat = "EEEE"
+            let date = dateFormatter.string(from: task[tag.row].regdate)
+            label.text = "\(date)"
+        } else {
+            dateFormatter.dateFormat = "yyyy. MM. dd a hh:mm"
+            let date = dateFormatter.string(from: task[tag.row].regdate)
+            label.text = "\(date)"
+        }
     }
     
     
@@ -232,14 +254,16 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                 if pinned.count > 0 {
                     let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
                     cell.titleLabel.text = pinned![indexPath.row].title
-                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
+                    dateCal(date: Date(), task: pinned, tag: indexPath, label: cell.dateLabel)
+//                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
                     cell.contentLabel.text = trimString
                 }
             } else {
                 if unPinned.count > 0{
                     let trimString = unPinned![indexPath.row].content!.filter {!"\n".contains($0)}
                     cell.titleLabel.text = unPinned[indexPath.row].title
-                    cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
+                    dateCal(date: Date(), task: unPinned, tag: indexPath, label: cell.dateLabel)
+//                    cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
                     cell.contentLabel.text = trimString
                 }
             }
@@ -254,8 +278,10 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         searchKeywordChangeColor(string: string, label: cell.titleLabel)
         searchKeywordChangeColor(string: trimString, label: cell.contentLabel)
         
+        dateCal(date: Date(), task: searchResults, tag: indexPath, label: cell.dateLabel)
+        
 //        cell.titleLabel.text = searchResults[indexPath.row].title
-        cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
+//        cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
 //        cell.contentLabel.text = trimString
         
         return cell
