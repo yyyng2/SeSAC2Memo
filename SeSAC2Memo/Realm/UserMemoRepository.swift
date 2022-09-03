@@ -8,6 +8,7 @@
 import Foundation
 
 import RealmSwift
+import SwiftUI
 
 protocol UserMemoRepositoryType{
     func fetchFilter(text: String) -> Results<UserMemo>
@@ -69,6 +70,22 @@ class UserMemoRepository: UserMemoRepositoryType{
             try localRealm.write {
                 //하나의 레코드에서 특정 컬럼 하나만 변경
                 record.pin = !record.pin
+            }
+        } catch let error{
+            print(error)
+        }
+        
+    }
+    
+    func updateRecord(record: UserMemo) {
+        
+        do{
+            let task = localRealm.object(ofType: UserMemo.self, forPrimaryKey: record.objectId)
+            try localRealm.write {
+                task?.regdate = record.regdate
+                task?.allText = record.allText
+                task?.content = record.content
+                task?.title = record.title
             }
         } catch let error{
             print(error)

@@ -10,6 +10,8 @@ import RealmSwift
 
 class MemoWriteViewController: BaseViewController{
     
+    var edit = false
+    
     var memo: UserMemo?
     
     let repository = UserMemoRepository()
@@ -36,8 +38,10 @@ class MemoWriteViewController: BaseViewController{
         
         mainView.memoTextView.delegate = self
         
-       
-        mainView.memoTextView.text = memo?.allText
+        if edit == true{
+            mainView.memoTextView.text = memo?.allText
+        }
+        
 
     }
     
@@ -63,20 +67,39 @@ class MemoWriteViewController: BaseViewController{
     }
     
     @objc func doneButtonTapped(){
-        
-        let content = mainView.memoTextView.text!
-        let array = content.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: {$0 == "\n"})
-        if array.count == 2 {
-            titleText = String(array[0])
-            contentText = String(array[1])
-            let task = UserMemo(allText: content, title: titleText, content: contentText, regdate: Date())
-            repository.addRecord(record: task)
+        if edit == true {
+            let content = mainView.memoTextView.text!
+            let array = content.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: {$0 == "\n"})
+            if array.count == 2 {
+                titleText = String(array[0])
+                contentText = String(array[1])
+                let task = UserMemo(allText: content, title: titleText, content: contentText, regdate: Date())
+                repository.updateRecord(record: task)
+            } else {
+                titleText = String(array[0])
+                let task = UserMemo(allText: content, title: titleText, content: "추가 텍스트 없음", regdate: Date())
+                repository.updateRecord(record: task)
+            }
         } else {
-            titleText = String(array[0])
-            let task = UserMemo(allText: content, title: titleText, content: "추가 텍스트 없음", regdate: Date())
-            repository.addRecord(record: task)
+            let content = mainView.memoTextView.text!
+            let array = content.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: {$0 == "\n"})
+            if array.count == 2 {
+                titleText = String(array[0])
+                contentText = String(array[1])
+                let task = UserMemo(allText: content, title: titleText, content: contentText, regdate: Date())
+                repository.addRecord(record: task)
+            } else {
+                titleText = String(array[0])
+                let task = UserMemo(allText: content, title: titleText, content: "추가 텍스트 없음", regdate: Date())
+                repository.addRecord(record: task)
+            }
         }
-        
+      
+        edit = false
+        let vc = MemoViewController()
+        vc.fetchRealm()
+        vc.searchStatus = false
+        vc.searchResults = nil
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
        

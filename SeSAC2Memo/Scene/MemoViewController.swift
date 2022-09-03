@@ -39,6 +39,8 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    var searchKeyword = ""
+    
     var searchStatus = false
     
     func format(for number: Int) -> String{
@@ -108,9 +110,10 @@ class MemoViewController: BaseViewController{
     }
     
     func fetchResults(results: Results<UserMemo>){
-        tasks = repository.fetch()
+
         searchResults = results
-        mainView.tableView.reloadData()
+        fetchRealm()
+       
     }
     
     
@@ -124,6 +127,8 @@ class MemoViewController: BaseViewController{
         self.navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
         //툴바
+        let vc = MemoWriteViewController()
+        vc.edit = false
         let writeItem = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(writeItemTapped))
         writeItem.tintColor = .orange
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -150,6 +155,18 @@ class MemoViewController: BaseViewController{
         }
         
        
+    }
+    //검색키워드 컬러 변경
+    func searchKeywordChangeColor(string: String, label: UILabel){
+        let attributeString = NSMutableAttributedString(string: string)
+        var textFirstIndex: Int = 0
+        if let textFirstRange = string.range(of: "\(searchKeyword)", options: .caseInsensitive) {
+            textFirstIndex = string.distance(from: string.startIndex, to: textFirstRange.lowerBound)
+            attributeString.addAttribute(.foregroundColor, value: UIColor.orange, range: NSRange(location: textFirstIndex, length: searchKeyword.count))
+            attributeString.addAttribute(.font, value: UIFont.boldSystemFont(ofSize: label.font.pointSize), range: NSRange(location: textFirstIndex, length: searchKeyword.count))
+            label.attributedText = attributeString
+                 
+        }
     }
  
 
@@ -228,10 +245,17 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             
             return cell
         }
+    
+        let string = searchResults[indexPath.row].title
         let trimString = searchResults[indexPath.row].content!.filter {!"\n".contains($0)}
-        cell.titleLabel.text = searchResults[indexPath.row].title
+      
+     
+        searchKeywordChangeColor(string: string, label: cell.titleLabel)
+        searchKeywordChangeColor(string: trimString, label: cell.contentLabel)
+        
+//        cell.titleLabel.text = searchResults[indexPath.row].title
         cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
-        cell.contentLabel.text = trimString
+//        cell.contentLabel.text = trimString
         
         return cell
        
@@ -239,7 +263,7 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = MemoWriteViewController()
-
+        vc.edit = true
         if searchStatus == false{
             if indexPath.section == 0 {
                 vc.memo = pinned[indexPath.row]
@@ -248,12 +272,14 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                 vc.memo = unPinned[indexPath.row]
                 transition(vc, transitionStyle: .push)
             }
+        } else {
+            let backBarButtonItem = UIBarButtonItem(title: "검색", style: .plain, target: self, action: #selector(backButtonTapped))
+            backBarButtonItem.tintColor = .orange
+            self.navigationItem.backBarButtonItem = backBarButtonItem
+            vc.memo = searchResults[indexPath.row]
+            transition(vc, transitionStyle: .push)
         }
-        let backBarButtonItem = UIBarButtonItem(title: "검색", style: .plain, target: self, action: #selector(backButtonTapped))
-        backBarButtonItem.tintColor = .orange
-        self.navigationItem.backBarButtonItem = backBarButtonItem
-        vc.memo = searchResults[indexPath.row]
-        transition(vc, transitionStyle: .push)
+     
        
     }
     
@@ -318,11 +344,13 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                         self.repository.deleteById(id: task)
                         self.fetchRealm()
                     }
+                } else {
+                    let task = self.searchResults[indexPath.row].objectId
+                    self.repository.deleteById(id: task)
+                    self.fetchRealm()
                 }
  
-                let task = self.searchResults[indexPath.row].objectId
-                self.repository.deleteById(id: task)
-                self.fetchRealm()
+            
 
                
             }
@@ -339,17 +367,27 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 }
 extension MemoViewController: UISearchControllerDelegate{
     func willPresentSearchController(_ searchController: UISearchController) {
-   
+//        guard let text = searchController.searchBar.text else {
+//            return
+//        }
+//        searchStatus = true
+//        fetchResults(results: repository.fetchFilter(text: text))
+//        searchKeyword = text
+//        print(searchResults.count)
+//        fetchRealm()
+//        mainView.tableView.reloadData()
     }
 
     func willDismissSearchController(_ searchController: UISearchController) {
         searchStatus = false
+        searchKeyword = ""
         fetchRealm()
         mainView.tableView.reloadData()
     }
 
     func didDismissSearchController(_ searchController: UISearchController) {
         searchStatus = false
+        searchKeyword = ""
         fetchRealm()
         mainView.tableView.reloadData()
     }
@@ -365,7 +403,9 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
         
         searchStatus = true
         fetchResults(results: repository.fetchFilter(text: text))
-        searchResults = repository.fetchFilter(text: text)
+        searchKeyword = text
+        
+        
         print(searchResults.count)
         fetchRealm()
         mainView.tableView.reloadData()
@@ -378,6 +418,7 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
 
         searchStatus = false
+        searchKeyword = ""
         fetchRealm()
         mainView.tableView.reloadData()
 
