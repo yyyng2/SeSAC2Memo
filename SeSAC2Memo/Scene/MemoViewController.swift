@@ -295,9 +295,9 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         
    
 
-            if self.searchStatus == false {
-                let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
-                    
+        if self.searchStatus == false {
+            let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
+                
                 if indexPath.section == 0 {
                     self.repository.updatePin(record: self.pinned[indexPath.row])
                     self.fetchRealm()
@@ -309,11 +309,11 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
                         self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
                         return
                     }
-                   
+                    
                     self.fetchRealm()
                 }
-               
-            
+                
+                
             }
             let image = self.tasks[indexPath.row].pin ? "pin.fill" : "pin"
             pin.image = UIImage(systemName: image)
@@ -321,8 +321,29 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             
             return UISwipeActionsConfiguration(actions: [pin])
             
+        } else {
+            let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
+                if self.pinned.count < 5 {
+                    self.repository.updatePin(record: self.searchResults[indexPath.row])
+                    self.fetchRealm()
+                    self.repository.fetchFilterPinned()
+                } else {
+                    self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
+                    return
+                }
+                
+                self.fetchRealm()
+            }
+                
+                
+            
+            let image = self.tasks[indexPath.row].pin ? "pin.fill" : "pin"
+            pin.image = UIImage(systemName: image)
+            pin.backgroundColor = .orange
+            
+            return UISwipeActionsConfiguration(actions: [pin])
         }
-       return nil
+        
        
     }
     
@@ -368,15 +389,7 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 }
 extension MemoViewController: UISearchControllerDelegate{
     func willPresentSearchController(_ searchController: UISearchController) {
-//        guard let text = searchController.searchBar.text else {
-//            return
-//        }
-//        searchStatus = true
-//        fetchResults(results: repository.fetchFilter(text: text))
-//        searchKeyword = text
-//        print(searchResults.count)
-//        fetchRealm()
-//        mainView.tableView.reloadData()
+
     }
 
     func willDismissSearchController(_ searchController: UISearchController) {
