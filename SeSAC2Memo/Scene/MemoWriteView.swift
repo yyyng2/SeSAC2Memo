@@ -11,8 +11,8 @@ class MemoWriteView: BaseView{
     
     let memoTextView : UITextView = {
        let view = UITextView()
-        view.backgroundColor = .black
-        view.textColor = .white
+        view.backgroundColor = UIColor(named: "backgroundColor")
+        view.textColor = UIColor(named: "fontColor")
         view.becomeFirstResponder()
         view.font = .boldSystemFont(ofSize: 20)
         return view
@@ -26,6 +26,7 @@ class MemoWriteView: BaseView{
         fatalError("init(coder:) has not been implemented")
     }
     override func configure() {
+        backgroundColor = UIColor(named: "backgroundColor")
         addSubview(memoTextView)
         setKeyboardObserver()
     }
@@ -45,7 +46,8 @@ class MemoWriteView: BaseView{
     override func setConstraints() {
 
         memoTextView.snp.makeConstraints { make in
-            make.top.left.right.equalTo(self.safeAreaLayoutGuide).offset(20)
+            make.top.left.equalTo(self.safeAreaLayoutGuide).offset(20)
+            make.right.equalTo(self.safeAreaLayoutGuide).offset(-20)
             make.height.equalTo(self.safeAreaLayoutGuide).multipliedBy(0.55)
         }
 

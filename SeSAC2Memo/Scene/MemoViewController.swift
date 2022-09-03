@@ -68,7 +68,8 @@ class MemoViewController: BaseViewController{
             //마지막에 주석 해제할 것
             //UserDefaultsHelper.standard.first = true
             let viewController = PopupViewController()
-            transition(viewController, transitionStyle: .present)
+            viewController.modalPresentationStyle = .overFullScreen
+            present(viewController, animated: true)
         }
         
         super.loadView()

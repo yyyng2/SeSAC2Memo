@@ -13,6 +13,7 @@ class PopupViewController: BaseViewController{
     override func loadView() {
         super.loadView()
         self.view = mainView
+        view.backgroundColor = .clear
     }
     
     override func configureUI() {

@@ -39,6 +39,7 @@ class PopupView: BaseView{
     }()
     
     override func configure() {
+        backgroundColor = .clear
         [popView, welcomeLabel, doneButton].forEach {
             addSubview($0)
         }
@@ -50,13 +51,14 @@ class PopupView: BaseView{
             make.center.equalTo(safeAreaLayoutGuide)
         }
         welcomeLabel.snp.makeConstraints { make in
-            make.top.equalTo(popView.snp.top).offset(20)
+            make.top.equalTo(popView.snp.top).offset(16)
             make.left.equalTo(popView.snp.left).offset(20)
         }
         doneButton.snp.makeConstraints { make in
-            make.top.equalTo(welcomeLabel.snp.bottom).offset(20)
+            
             make.left.equalTo(popView.snp.left).offset(20)
             make.right.equalTo(popView.snp.right).offset(-20)
+            make.bottom.equalTo(popView.snp.bottom).offset(-8)
             make.height.equalTo(welcomeLabel.snp.height).multipliedBy(0.45)
         }
     }

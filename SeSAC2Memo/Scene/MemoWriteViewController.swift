@@ -32,6 +32,8 @@ class MemoWriteViewController: BaseViewController{
     override func loadView() {
         super.loadView()
         
+        self.view.backgroundColor = UIColor(named: "backgroundColor")
+        
         setNavigationUI()
         
         self.view = mainView
