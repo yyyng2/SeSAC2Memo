@@ -32,6 +32,13 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    var searchResults: Results<UserMemo>!{
+        didSet {
+            mainView.tableView.reloadData()
+            print("Tasks Changed")
+        }
+    }
+    
     func format(for number: Int) -> String{
         let numberFormat = NumberFormatter()
         numberFormat.numberStyle = .decimal
@@ -44,6 +51,7 @@ class MemoViewController: BaseViewController{
        let bar = UISearchController()
         bar.searchBar.placeholder = "검색"
         bar.searchBar.setValue("취소", forKey: "cancelButtonText")
+        bar.searchBar.tintColor = .orange
         return bar
     }()
     
@@ -66,6 +74,7 @@ class MemoViewController: BaseViewController{
         self.view = mainView
       
         searchBar.delegate = self
+        navigationItem.searchController?.searchResultsUpdater = self
     }
     override func viewDidLoad() {
         mainView.tableView.delegate = self
@@ -96,21 +105,28 @@ class MemoViewController: BaseViewController{
         mainView.tableView.reloadData()
     }
     
+    func fetchResults(results: Results<UserMemo>){
+        tasks = repository.fetch()
+        searchResults = results
+        mainView.tableView.reloadData()
+    }
+    
     
     
     //네비게이션 라지타이틀 설정 , 서치바 추가
     override func setNavigationUI() {
-        navigationBarAppearance.backgroundColor = Constants.BaseColor.background
-        navigationBarAppearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-        navigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        navigationBarAppearance.backgroundColor = Constants.BaseColor.foreground
+        navigationBarAppearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(named: "fontColor")!]
+        navigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(named: "fontColor")!]
         self.navigationController?.navigationBar.standardAppearance = navigationBarAppearance
         self.navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
+        //툴바
         let writeItem = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(writeItemTapped))
         writeItem.tintColor = .orange
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        self.navigationController?.toolbar.barTintColor = Constants.BaseColor.background
-        self.navigationController?.toolbar.backgroundColor = Constants.BaseColor.background
+        self.navigationController?.toolbar.barTintColor = Constants.BaseColor.foreground
+        self.navigationController?.toolbar.backgroundColor = Constants.BaseColor.foreground
         setToolbarItems([flexibleSpace, writeItem], animated: true)
         
         self.navigationItem.searchController = searchBar
@@ -133,7 +149,7 @@ class MemoViewController: BaseViewController{
         
        
     }
-    
+ 
 
     
     
@@ -143,27 +159,42 @@ class MemoViewController: BaseViewController{
 extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func numberOfSections(in tableView: UITableView) -> Int {
+        if searchResults != nil{
+            return 1
+        }
         return 2
     }
     
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         if let header = view as? UITableViewHeaderFooterView {
             header.contentView.backgroundColor = UIColor.clear
-            header.textLabel?.textColor = .white
+            header.textLabel?.textColor = UIColor(named: "fontColor")
             header.textLabel?.font = .systemFont(ofSize: 20, weight: .black)
             header.sizeToFit()
         }
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if searchResults != nil{
+            if section == 0{
+                return "\(searchResults.count)개 찾음"
+            }
+        }
         if section == 0{
             return pinned.count <= 0 ? "" : "고정된 메모"
         } else {
             return unPinned.count <= 0 ? "" : "메모"
         }
     }
+            
+            
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if searchResults != nil{
+            if section == 0{
+                return searchResults.count <= 0 ? 0 : searchResults.count
+            }
+        }
         if section == 0{
             return pinned.count <= 0 ? 0 : pinned.count
         } else {
@@ -173,7 +204,16 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MemoTableViewCell.reuseIdentifier, for: indexPath) as? MemoTableViewCell else { return UITableViewCell() }
+        cell.backgroundColor = UIColor(named: "foregroundColor")
         
+        if searchResults != nil{
+            if indexPath.section == 0{
+                let trimString = searchResults[indexPath.row].content!.filter {!"\n".contains($0)}
+                cell.titleLabel.text = searchResults[indexPath.row].title
+                cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
+                cell.contentLabel.text = trimString
+            }
+        }
         if indexPath.section == 0{
             if pinned.count > 0 {
                 let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
@@ -193,16 +233,35 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         return cell
     }
     
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        <#code#>
-//    }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let vc = MemoWriteViewController()
+        if searchResults != nil{
+            vc.memo = searchResults[indexPath.row]
+        }
+        
+        if indexPath.section == 0 {
+            vc.memo = pinned[indexPath.row]
+            transition(vc, transitionStyle: .push)
+        } else {
+            vc.memo = unPinned[indexPath.row]
+            transition(vc, transitionStyle: .push)
+        }
+       
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        navigationItem.searchController?.searchBar.resignFirstResponder()
+        
+    }
     
 
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
-            
+            if self.searchResults != nil{
+               
+            }
             if indexPath.section == 0 {
                 self.repository.updatePin(record: self.pinned[indexPath.row])
                 self.fetchRealm()
@@ -234,6 +293,12 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             let alert = UIAlertController(title: nil, message: "삭제하시겠습니까?", preferredStyle: .alert)
             
             let okay = UIAlertAction(title: "삭제", style: .destructive) {_ in
+                if self.searchResults != nil{
+                    let task = self.searchResults[indexPath.row].objectId
+                    self.repository.deleteById(id: task)
+                    self.fetchRealm()
+                }
+                
                 if indexPath.section == 0 {
                     let task = self.pinned![indexPath.row].objectId
                     self.repository.deleteById(id: task)
@@ -257,8 +322,41 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
 }
 extension MemoViewController: UISearchControllerDelegate{
+    func willPresentSearchController(_ searchController: UISearchController) {
+       
+    }
+
+    func willDismissSearchController(_ searchController: UISearchController) {
+      fetchRealm()
+     
+    }
+
+    func didDismissSearchController(_ searchController: UISearchController) {
+       
+    }
+
     
 }
+extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
+    func updateSearchResults(for searchController: UISearchController) {
+
+        guard let text = searchController.searchBar.text else {
+            return
+        }
+        fetchResults(results: repository.fetchFilter(text: text))
+        fetchRealm()
+        mainView.tableView.reloadData()
+        
+    }
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            textField.resignFirstResponder() // TextField 비활성화
+            return true
+    }
+
+
+}
+
 extension MemoViewController: UITabBarControllerDelegate{
     
 }
+

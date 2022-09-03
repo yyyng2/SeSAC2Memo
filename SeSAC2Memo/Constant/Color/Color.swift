@@ -10,9 +10,10 @@ import UIKit
 enum Constants {
     
     enum BaseColor {
-        static let background = UIColor(displayP3Red: 20/255, green: 20/255, blue: 20/255, alpha: 1)
+        static let background = UIColor(named: "backgroundColor")
+        static let foreground = UIColor(named: "foregroundColor")
         static let border = UIColor.white.cgColor
-        static let text = UIColor.white
+        static let text = UIColor(named: "fontColor")
         static let placeholder = UIColor.lightGray
         static let point = UIColor.systemRed
     }

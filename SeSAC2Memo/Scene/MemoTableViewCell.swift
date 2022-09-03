@@ -14,7 +14,7 @@ class MemoTableViewCell: BaseTableViewCell{
     
     let titleLabel: UILabel = {
        let label = UILabel()
-        label.textColor = .white
+        label.textColor = UIColor(named: "fontColor")
         label.font = .boldSystemFont(ofSize: 20)
         return label
     }()

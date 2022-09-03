@@ -11,8 +11,10 @@ class MemoView: BaseView{
 
     var tableView: UITableView = {
         let view = UITableView(frame: .zero, style: .insetGrouped)
-        view.rowHeight = 100
-        view.backgroundColor = .clear
+        view.rowHeight = 80
+        view.backgroundColor = UIColor(named: "backgroundColor")
+        view.separatorColor = .systemGray2
+        view.separatorInset.left = 0
         return view
     }()
     

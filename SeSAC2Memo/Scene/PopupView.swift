@@ -11,7 +11,7 @@ class PopupView: BaseView{
     
     let popView: UIView = {
        let view = UIView()
-        view.backgroundColor = Constants.BaseColor.background
+        view.backgroundColor = UIColor(named: "foregroundColor")
         view.layer.cornerRadius = 8
         return view
     }()
@@ -19,6 +19,7 @@ class PopupView: BaseView{
     let welcomeLabel: PopupLabel = {
        let label = PopupLabel()
         label.numberOfLines = 4
+        label.textColor = UIColor(named: "fontColor")
         label.text = """
                     처음 오셨군요!
                     환영합니다. :)

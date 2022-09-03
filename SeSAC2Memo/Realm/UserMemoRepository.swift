@@ -10,7 +10,7 @@ import Foundation
 import RealmSwift
 
 protocol UserMemoRepositoryType{
-    func fetchFilter() -> Results<UserMemo>
+    func fetchFilter(text: String) -> Results<UserMemo>
     func fetchFilterPinned() -> Results<UserMemo>
     func fetchFilterUnPinned() -> Results<UserMemo>
 //    func deleteFilterId(id: ObjectId)
@@ -41,8 +41,8 @@ class UserMemoRepository: UserMemoRepositoryType{
         return localRealm.objects(UserMemo.self).sorted(byKeyPath: "regdate", ascending: true)
     }
     
-    func fetchFilter() -> Results<UserMemo>{
-        return localRealm.objects(UserMemo.self).filter("diaryTitle CONTAINS[c] 'a'")
+    func fetchFilter(text: String) -> Results<UserMemo>{
+        return localRealm.objects(UserMemo.self).filter("allText CONTAINS[c] '\(text)'").sorted(byKeyPath: "regdate", ascending: false)
     }
     
     func fetchFilterPinned() -> Results<UserMemo>{
