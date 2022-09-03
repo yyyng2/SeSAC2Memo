@@ -39,6 +39,8 @@ class MemoViewController: BaseViewController{
         }
     }
     
+    var searchStatus = false
+    
     func format(for number: Int) -> String{
         let numberFormat = NumberFormatter()
         numberFormat.numberStyle = .decimal
@@ -93,7 +95,7 @@ class MemoViewController: BaseViewController{
     }
     
     @objc func backButtonTapped(){
-        //백버튼탭눌러서 팝 할시 메인화면타이틀 라지텍스트로 안돌아옴.. 완료버튼은 정상 작동
+        //백버튼탭눌러서 팝 할시 메인화면 라지타이틀로 안돌아옴.. 완료버튼은 메인화면 라지타이틀정상 작동
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
     }
@@ -159,10 +161,12 @@ class MemoViewController: BaseViewController{
 extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        if searchResults != nil{
-            return 1
+        
+        if searchStatus == false {
+            return 2
         }
-        return 2
+        return 1
+
     }
     
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
@@ -175,77 +179,81 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if searchResults != nil{
+        if searchStatus == false{
             if section == 0{
-                return "\(searchResults.count)개 찾음"
+                return pinned.count <= 0 ? "" : "고정된 메모"
+            } else {
+                return unPinned.count <= 0 ? "" : "메모"
             }
         }
-        if section == 0{
-            return pinned.count <= 0 ? "" : "고정된 메모"
-        } else {
-            return unPinned.count <= 0 ? "" : "메모"
-        }
+        let count = searchResults == nil ? 0 : searchResults.count
+        return "\(count)개 찾음"
     }
             
             
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if searchResults != nil{
+
+        if searchStatus == false {
             if section == 0{
-                return searchResults.count <= 0 ? 0 : searchResults.count
+                return pinned.count <= 0 ? 0 : pinned.count
+            } else {
+                return unPinned.count <= 0 ? 0 : unPinned.count
             }
         }
-        if section == 0{
-            return pinned.count <= 0 ? 0 : pinned.count
-        } else {
-            return unPinned.count <= 0 ? 0 : unPinned.count
-        }
+        let count = searchResults == nil ? 0 : searchResults.count
+        return count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MemoTableViewCell.reuseIdentifier, for: indexPath) as? MemoTableViewCell else { return UITableViewCell() }
         cell.backgroundColor = UIColor(named: "foregroundColor")
-        
-        if searchResults != nil{
+
+        if searchStatus == false {
             if indexPath.section == 0{
-                let trimString = searchResults[indexPath.row].content!.filter {!"\n".contains($0)}
-                cell.titleLabel.text = searchResults[indexPath.row].title
-                cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
-                cell.contentLabel.text = trimString
+                if pinned.count > 0 {
+                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
+                    cell.titleLabel.text = pinned![indexPath.row].title
+                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
+                    cell.contentLabel.text = trimString
+                }
+            } else {
+                if unPinned.count > 0{
+                    let trimString = unPinned![indexPath.row].content!.filter {!"\n".contains($0)}
+                    cell.titleLabel.text = unPinned[indexPath.row].title
+                    cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
+                    cell.contentLabel.text = trimString
+                }
             }
+            
+            return cell
         }
-        if indexPath.section == 0{
-            if pinned.count > 0 {
-                let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
-                cell.titleLabel.text = pinned![indexPath.row].title
-                cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
-                cell.contentLabel.text = trimString
-            }
-        } else {
-            if unPinned.count > 0{
-                let trimString = unPinned![indexPath.row].content!.filter {!"\n".contains($0)}
-                cell.titleLabel.text = unPinned[indexPath.row].title
-                cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
-                cell.contentLabel.text = trimString
-            }
-        }
+        let trimString = searchResults[indexPath.row].content!.filter {!"\n".contains($0)}
+        cell.titleLabel.text = searchResults[indexPath.row].title
+        cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
+        cell.contentLabel.text = trimString
         
         return cell
+       
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = MemoWriteViewController()
-        if searchResults != nil{
-            vc.memo = searchResults[indexPath.row]
+
+        if searchStatus == false{
+            if indexPath.section == 0 {
+                vc.memo = pinned[indexPath.row]
+                transition(vc, transitionStyle: .push)
+            } else {
+                vc.memo = unPinned[indexPath.row]
+                transition(vc, transitionStyle: .push)
+            }
         }
-        
-        if indexPath.section == 0 {
-            vc.memo = pinned[indexPath.row]
-            transition(vc, transitionStyle: .push)
-        } else {
-            vc.memo = unPinned[indexPath.row]
-            transition(vc, transitionStyle: .push)
-        }
+        let backBarButtonItem = UIBarButtonItem(title: "검색", style: .plain, target: self, action: #selector(backButtonTapped))
+        backBarButtonItem.tintColor = .orange
+        self.navigationItem.backBarButtonItem = backBarButtonItem
+        vc.memo = searchResults[indexPath.row]
+        transition(vc, transitionStyle: .push)
        
     }
     
@@ -258,31 +266,37 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
-        let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
-            if self.searchResults != nil{
-               
-            }
-            if indexPath.section == 0 {
-                self.repository.updatePin(record: self.pinned[indexPath.row])
-                self.fetchRealm()
-            } else {
-                if self.pinned.count < 5 {
-                    self.repository.updatePin(record: self.unPinned[indexPath.row])
+   
+
+            if self.searchStatus == false {
+                let pin = UIContextualAction(style: .normal, title: nil) { action, view, completionHandler in
+                    
+                if indexPath.section == 0 {
+                    self.repository.updatePin(record: self.pinned[indexPath.row])
                     self.fetchRealm()
                 } else {
-                    self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
-                    return
+                    if self.pinned.count < 5 {
+                        self.repository.updatePin(record: self.unPinned[indexPath.row])
+                        self.fetchRealm()
+                    } else {
+                        self.showAlert(title: "!", message: "고정 메모는 5개를 넘을 수 없습니다.", buttonTitle: "확인")
+                        return
+                    }
+                   
+                    self.fetchRealm()
                 }
                
-                self.fetchRealm()
+            
             }
+            let image = self.tasks[indexPath.row].pin ? "pin.fill" : "pin"
+            pin.image = UIImage(systemName: image)
+            pin.backgroundColor = .orange
+            
+            return UISwipeActionsConfiguration(actions: [pin])
             
         }
-        let image = tasks[indexPath.row].pin ? "pin.fill" : "pin"
-        pin.image = UIImage(systemName: image)
-        pin.backgroundColor = .orange
-        
-        return UISwipeActionsConfiguration(actions: [pin])
+       return nil
+       
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -293,21 +307,23 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             let alert = UIAlertController(title: nil, message: "삭제하시겠습니까?", preferredStyle: .alert)
             
             let okay = UIAlertAction(title: "삭제", style: .destructive) {_ in
-                if self.searchResults != nil{
-                    let task = self.searchResults[indexPath.row].objectId
-                    self.repository.deleteById(id: task)
-                    self.fetchRealm()
+
+                if self.searchStatus == false {
+                    if indexPath.section == 0 {
+                        let task = self.pinned![indexPath.row].objectId
+                        self.repository.deleteById(id: task)
+                        self.fetchRealm()
+                    } else {
+                        let task = self.unPinned![indexPath.row].objectId
+                        self.repository.deleteById(id: task)
+                        self.fetchRealm()
+                    }
                 }
-                
-                if indexPath.section == 0 {
-                    let task = self.pinned![indexPath.row].objectId
-                    self.repository.deleteById(id: task)
-                    self.fetchRealm()
-                } else {
-                    let task = self.unPinned![indexPath.row].objectId
-                    self.repository.deleteById(id: task)
-                    self.fetchRealm()
-                }
+ 
+                let task = self.searchResults[indexPath.row].objectId
+                self.repository.deleteById(id: task)
+                self.fetchRealm()
+
                
             }
             let cancel = UIAlertAction(title: "취소", style: .cancel)
@@ -323,16 +339,19 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 }
 extension MemoViewController: UISearchControllerDelegate{
     func willPresentSearchController(_ searchController: UISearchController) {
-       
+   
     }
 
     func willDismissSearchController(_ searchController: UISearchController) {
-      fetchRealm()
-     
+        searchStatus = false
+        fetchRealm()
+        mainView.tableView.reloadData()
     }
 
     func didDismissSearchController(_ searchController: UISearchController) {
-       
+        searchStatus = false
+        fetchRealm()
+        mainView.tableView.reloadData()
     }
 
     
@@ -343,7 +362,11 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
         guard let text = searchController.searchBar.text else {
             return
         }
+        
+        searchStatus = true
         fetchResults(results: repository.fetchFilter(text: text))
+        searchResults = repository.fetchFilter(text: text)
+        print(searchResults.count)
         fetchRealm()
         mainView.tableView.reloadData()
         
@@ -352,7 +375,14 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
             textField.resignFirstResponder() // TextField 비활성화
             return true
     }
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
 
+        searchStatus = false
+        fetchRealm()
+        mainView.tableView.reloadData()
+
+        
+    }
 
 }
 
