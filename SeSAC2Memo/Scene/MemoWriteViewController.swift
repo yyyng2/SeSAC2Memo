@@ -143,15 +143,18 @@ final class MemoWriteViewController: BaseViewController{
 
     
     @objc func shareButtonTapped(){
-        let textToShare: String = "test."
+        let trimString = mainView.memoTextView.text!.filter {!"\n".contains($0)}
+        let textToShare: String = trimString
 
         let activityViewController = UIActivityViewController(activityItems: [textToShare], applicationActivities: nil)
         
         activityViewController.completionWithItemsHandler = { (activity, success, items, error) in
             if success {
             // 성공했을 때 작업
+                self.showAlert(title: "", message: "전달에 성공했습니다.", buttonTitle: "확인")
            }  else  {
             // 실패했을 때 작업
+               self.showAlert(title: "", message: "전달에 실패했습니다.", buttonTitle: "확인")
            }
         }
         self.present(activityViewController, animated: true, completion: nil)
