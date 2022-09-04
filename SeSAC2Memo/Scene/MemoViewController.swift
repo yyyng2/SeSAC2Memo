@@ -87,6 +87,7 @@ final class MemoViewController: BaseViewController{
         mainView.tableView.delegate = self
         mainView.tableView.dataSource = self
         mainView.tableView.register(MemoTableViewCell.self, forCellReuseIdentifier: MemoTableViewCell.reuseIdentifier)
+        mainView.tableView.keyboardDismissMode = .onDrag
     }
     override func viewWillAppear(_ animated: Bool) {
         fetchRealm()
@@ -194,8 +195,6 @@ final class MemoViewController: BaseViewController{
                  
         }
     }
- 
-
     
     
 
