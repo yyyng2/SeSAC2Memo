@@ -8,7 +8,7 @@
 import UIKit
 import RealmSwift
 
-class MemoViewController: BaseViewController{
+final class MemoViewController: BaseViewController{
     //레포지토리 인스턴스 생성
     let repository = UserMemoRepository()
     //didSet
@@ -81,7 +81,7 @@ class MemoViewController: BaseViewController{
         self.view = mainView
       
         searchBar.delegate = self
-        navigationItem.searchController?.searchResultsUpdater = self
+        
     }
     override func viewDidLoad() {
         mainView.tableView.delegate = self
@@ -91,6 +91,7 @@ class MemoViewController: BaseViewController{
     override func viewWillAppear(_ animated: Bool) {
         fetchRealm()
         setNavigationUI()
+        searchKeyword = ""
     }
     
     @objc func writeItemTapped(){
@@ -106,7 +107,6 @@ class MemoViewController: BaseViewController{
     }
     
     func fetchRealm() {
-        print(Realm.Configuration.defaultConfiguration.fileURL)
         tasks = repository.fetch()
         pinned = repository.fetchFilterPinned()
         unPinned = repository.fetchFilterUnPinned()
@@ -120,10 +120,10 @@ class MemoViewController: BaseViewController{
        
     }
     
+    //날짜별 포맷
     func dateCal(date: Date, task: Results<UserMemo>, tag: IndexPath, label: UILabel){
         let distance = Calendar.current.dateComponents([.hour], from: task[tag.row].regdate, to: Date()).hour
         dateFormatter.locale = Locale(identifier: "ko_KR")
-        print(distance)
         if distance! < 24{
             dateFormatter.dateFormat = "a hh:mm"
             let date = dateFormatter.string(from: task[tag.row].regdate)
@@ -160,6 +160,8 @@ class MemoViewController: BaseViewController{
         setToolbarItems([flexibleSpace, writeItem], animated: true)
         
         self.navigationItem.searchController = searchBar
+        self.navigationItem.searchController?.searchResultsUpdater = self
+        self.navigationItem.searchController?.obscuresBackgroundDuringPresentation = false
  
         self.navigationController?.navigationBar.prefersLargeTitles = true
         
@@ -179,6 +181,7 @@ class MemoViewController: BaseViewController{
         
        
     }
+    
     //검색키워드 컬러 변경
     func searchKeywordChangeColor(string: String, label: UILabel){
         let attributeString = NSMutableAttributedString(string: string)

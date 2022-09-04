@@ -77,10 +77,10 @@ class UserMemoRepository: UserMemoRepositoryType{
         
     }
     
-    func updateRecord(record: UserMemo) {
+    func updateRecord(id: ObjectId, record: UserMemo) {
         
         do{
-            let task = localRealm.object(ofType: UserMemo.self, forPrimaryKey: record.objectId)
+            let task = localRealm.object(ofType: UserMemo.self, forPrimaryKey: id)
             try localRealm.write {
                 task?.regdate = record.regdate
                 task?.allText = record.allText

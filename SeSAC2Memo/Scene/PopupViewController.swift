@@ -7,7 +7,7 @@
 
 import UIKit
 
-class PopupViewController: BaseViewController{
+final class PopupViewController: BaseViewController{
     let mainView = PopupView()
     
     override func loadView() {
