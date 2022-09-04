@@ -103,4 +103,16 @@ class UserMemoRepository: UserMemoRepositoryType{
         }
     }
     
+    func deleteEmptyRecord(){
+        let emptyRealm = localRealm.objects(UserMemo.self).filter("allText == ''")
+        do{
+            try localRealm.write{
+                localRealm.delete(emptyRealm)
+            }
+        }catch let error{
+            print(error)
+            
+        }
+    }
+    
 }

@@ -110,7 +110,9 @@ final class MemoWriteViewController: BaseViewController{
                 repository.addRecord(record: task)
             }
         }
-      
+        
+        repository.deleteEmptyRecord()
+        
         edit = false
         let vc = MemoViewController()
         vc.fetchRealm()
@@ -118,6 +120,7 @@ final class MemoWriteViewController: BaseViewController{
         vc.searchKeyword = ""
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
+        
     }
     
     func swipeRecognizer(){
