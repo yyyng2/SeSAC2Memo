@@ -68,7 +68,7 @@ final class MemoViewController: BaseViewController{
         // 첫번째 앱 실행인지 확인
         if UserDefaultsHelper.standard.first == false {
             //마지막에 주석 해제할 것
-            //UserDefaultsHelper.standard.first = true
+            UserDefaultsHelper.standard.first = true
             let viewController = PopupViewController()
             viewController.modalPresentationStyle = .overFullScreen
             present(viewController, animated: true)
@@ -97,6 +97,7 @@ final class MemoViewController: BaseViewController{
     
     @objc func writeItemTapped(){
         let vc = MemoWriteViewController()
+        vc.edit = false
         self.navigationController?.navigationBar.prefersLargeTitles = false
         transition(vc, transitionStyle: .push)
     }
@@ -151,13 +152,9 @@ final class MemoViewController: BaseViewController{
         self.navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
         //툴바
-        let vc = MemoWriteViewController()
-        vc.edit = false
         let writeItem = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(writeItemTapped))
         writeItem.tintColor = .orange
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        self.navigationController?.toolbar.barTintColor = Constants.BaseColor.foreground
-        self.navigationController?.toolbar.backgroundColor = Constants.BaseColor.foreground
         setToolbarItems([flexibleSpace, writeItem], animated: true)
         
         self.navigationItem.searchController = searchBar
@@ -195,7 +192,6 @@ final class MemoViewController: BaseViewController{
                  
         }
     }
-    
     
 
 }

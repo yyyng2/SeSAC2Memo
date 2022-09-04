@@ -10,7 +10,7 @@ import Foundation
 import RealmSwift
 import UIKit
 
-class UserMemo: Object{
+final class UserMemo: Object{
     @Persisted(primaryKey: true) var objectId: ObjectId
     @Persisted var title: String
     @Persisted var content: String?

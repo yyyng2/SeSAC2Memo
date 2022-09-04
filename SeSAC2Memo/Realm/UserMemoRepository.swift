@@ -21,7 +21,7 @@ protocol UserMemoRepositoryType{
     func addRecord(record: UserMemo)
 }
 
-class UserMemoRepository: UserMemoRepositoryType{
+final class UserMemoRepository: UserMemoRepositoryType{
  
     
     
