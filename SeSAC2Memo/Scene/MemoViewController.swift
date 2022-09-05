@@ -88,6 +88,7 @@ final class MemoViewController: BaseViewController{
         mainView.tableView.dataSource = self
         mainView.tableView.register(MemoTableViewCell.self, forCellReuseIdentifier: MemoTableViewCell.reuseIdentifier)
         mainView.tableView.keyboardDismissMode = .onDrag
+        fetchResults(results: repository.fetchFilter(text: ""))
     }
     override func viewWillAppear(_ animated: Bool) {
         fetchRealm()
@@ -462,9 +463,13 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
 
         searchStatus = false
+
         searchKeyword = ""
-        fetchRealm()
+        fetchResults(results: repository.fetchFilter(text: ""))
+        
         mainView.tableView.reloadData()
+        fetchRealm()
+ 
 
         
     }
