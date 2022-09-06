@@ -94,6 +94,8 @@ final class MemoViewController: BaseViewController{
         fetchRealm()
         setNavigationUI()
         searchKeyword = ""
+        fetchResults(results: repository.fetchFilter(text: ""))
+        searchResults = nil
     }
     
     @objc func writeItemTapped(){
@@ -113,7 +115,6 @@ final class MemoViewController: BaseViewController{
         tasks = repository.fetch()
         pinned = repository.fetchFilterPinned()
         unPinned = repository.fetchFilterUnPinned()
-        mainView.tableView.reloadData()
     }
     
     func fetchResults(results: Results<UserMemo>){
@@ -182,18 +183,45 @@ final class MemoViewController: BaseViewController{
     }
     
     //검색키워드 컬러 변경
-    func searchKeywordChangeColor(string: String, label: UILabel){
+    func searchKeywordChangeColor(string: String, label: UILabel, color: UIColor) -> NSAttributedString{
         let attributeString = NSMutableAttributedString(string: string)
         var textFirstIndex: Int = 0
         if let textFirstRange = string.range(of: "\(searchKeyword)", options: .caseInsensitive) {
             textFirstIndex = string.distance(from: string.startIndex, to: textFirstRange.lowerBound)
-            attributeString.addAttribute(.foregroundColor, value: UIColor.orange, range: NSRange(location: textFirstIndex, length: searchKeyword.count))
+            attributeString.addAttribute(.foregroundColor, value: color, range: NSRange(location: textFirstIndex, length: searchKeyword.count))
             attributeString.addAttribute(.font, value: UIFont.boldSystemFont(ofSize: label.font.pointSize), range: NSRange(location: textFirstIndex, length: searchKeyword.count))
-            label.attributedText = attributeString
-                 
+//            label.attributedText = attributeString
+            
         }
+        return attributeString
     }
     
+    func trimContentString(memo: Results<UserMemo>, index: IndexPath) -> String{
+        return memo[index.row].content!.filter {!"\n".contains($0)}
+    }
+    
+    func deleteCell(memo: Results<UserMemo>, index: IndexPath){
+        let task = memo[index.row].objectId
+        self.repository.deleteById(id: task)
+        self.fetchRealm()
+    }
+    
+    func searchStatusChange(bool: Bool, keyword: String){
+        searchStatus = bool
+        searchKeyword = keyword
+        fetchResults(results: repository.fetchFilter(text: keyword))
+        fetchRealm()
+        mainView.tableView.reloadData()
+    }
+    
+    func configureCell(cell: MemoTableViewCell, memo: Results<UserMemo>, index: IndexPath){
+
+        cell.titleLabel.text = memo[index.row].title
+        dateCal(date: Date(), task: pinned, tag: index, label: cell.dateLabel)
+        cell.contentLabel.text = trimContentString(memo: pinned, index: index)
+        
+       
+    }
 
 }
 
@@ -203,9 +231,9 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         
         if searchStatus == false {
             return 2
+        } else {
+            return 1
         }
-        return 1
-
     }
     
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
@@ -224,9 +252,11 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             } else {
                 return unPinned.count <= 0 ? "" : "메모"
             }
+        } else {
+            let count = searchResults == nil ? 0 : searchResults.count
+            return "\(count)개 찾음"
         }
-        let count = searchResults == nil ? 0 : searchResults.count
-        return "\(count)개 찾음"
+       
     }
             
             
@@ -239,9 +269,11 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             } else {
                 return unPinned.count <= 0 ? 0 : unPinned.count
             }
+        } else {
+            let count = searchResults == nil ? 0 : searchResults.count
+            return count
         }
-        let count = searchResults == nil ? 0 : searchResults.count
-        return count
+       
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -251,40 +283,48 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
         if searchStatus == false {
             if indexPath.section == 0{
                 if pinned.count > 0 {
-                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
-                    cell.titleLabel.text = pinned![indexPath.row].title
+                 
+//                    cell.titleLabel.text = pinned[indexPath.row].title
+                    cell.titleLabel.attributedText = NSAttributedString(string: pinned[indexPath.row].title)
                     dateCal(date: Date(), task: pinned, tag: indexPath, label: cell.dateLabel)
+                    cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: pinned, index: indexPath))
+                    
 //                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
-                    cell.contentLabel.text = trimString
+//                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
+//                    cell.contentLabel.text = trimString
                 }
             } else {
                 if unPinned.count > 0{
-                    let trimString = unPinned![indexPath.row].content!.filter {!"\n".contains($0)}
-                    cell.titleLabel.text = unPinned[indexPath.row].title
+                    
+//                    cell.titleLabel.text = unPinned[indexPath.row].title
+                    cell.titleLabel.attributedText = NSAttributedString(string: unPinned[indexPath.row].title)
                     dateCal(date: Date(), task: unPinned, tag: indexPath, label: cell.dateLabel)
-//                    cell.dateLabel.text = "\(unPinned[indexPath.row].regdate)"
-                    cell.contentLabel.text = trimString
+                    cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: unPinned, index: indexPath))
+            
+//                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
+//                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
+//                    cell.contentLabel.text = trimString
                 }
             }
             
             return cell
+        } else {
+            
+            
+            let searchChangedTitleString = searchResults[indexPath.row].title
+            let searchChangedContentString = trimContentString(memo: searchResults, index: indexPath)
+
+            cell.titleLabel.attributedText = searchKeywordChangeColor(string: searchChangedTitleString, label: cell.titleLabel, color: .orange)
+            cell.contentLabel.attributedText = searchKeywordChangeColor(string: searchChangedContentString, label: cell.contentLabel, color: .orange)
+
+            
+            dateCal(date: Date(), task: searchResults, tag: indexPath, label: cell.dateLabel)
+            
+            return cell
         }
-    
-        let string = searchResults[indexPath.row].title
-        let trimString = searchResults[indexPath.row].content!.filter {!"\n".contains($0)}
-      
-     
-        searchKeywordChangeColor(string: string, label: cell.titleLabel)
-        searchKeywordChangeColor(string: trimString, label: cell.contentLabel)
-        
-        dateCal(date: Date(), task: searchResults, tag: indexPath, label: cell.dateLabel)
-        
 //        cell.titleLabel.text = searchResults[indexPath.row].title
 //        cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
 //        cell.contentLabel.text = trimString
-        
-        return cell
-       
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -378,6 +418,8 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
        
     }
     
+    
+    
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         
@@ -389,18 +431,21 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 
                 if self.searchStatus == false {
                     if indexPath.section == 0 {
-                        let task = self.pinned![indexPath.row].objectId
-                        self.repository.deleteById(id: task)
-                        self.fetchRealm()
+                        self.deleteCell(memo: self.pinned, index: indexPath)
+//                        let task = self.pinned![indexPath.row].objectId
+//                        self.repository.deleteById(id: task)
+//                        self.fetchRealm()
                     } else {
-                        let task = self.unPinned![indexPath.row].objectId
-                        self.repository.deleteById(id: task)
-                        self.fetchRealm()
+                        self.deleteCell(memo: self.unPinned, index: indexPath)
+//                        let task = self.unPinned![indexPath.row].objectId
+//                        self.repository.deleteById(id: task)
+//                        self.fetchRealm()
                     }
                 } else {
-                    let task = self.searchResults[indexPath.row].objectId
-                    self.repository.deleteById(id: task)
-                    self.fetchRealm()
+                    self.deleteCell(memo: self.searchResults, index: indexPath)
+//                    let task = self.searchResults[indexPath.row].objectId
+//                    self.repository.deleteById(id: task)
+//                    self.fetchRealm()
                 }
  
             
@@ -449,8 +494,6 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
         searchStatus = true
         fetchResults(results: repository.fetchFilter(text: text))
         searchKeyword = text
-        
-        
         print(searchResults.count)
         fetchRealm()
         mainView.tableView.reloadData()
@@ -461,16 +504,16 @@ extension MemoViewController: UISearchResultsUpdating, UISearchBarDelegate{
             return true
     }
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-
+        fetchResults(results: repository.fetchFilter(text: ""))
+        
+        searchResults = nil
+           
         searchStatus = false
 
         searchKeyword = ""
-        fetchResults(results: repository.fetchFilter(text: ""))
-        
-        mainView.tableView.reloadData()
         fetchRealm()
  
-
+        mainView.tableView.reloadData()
         
     }
 
