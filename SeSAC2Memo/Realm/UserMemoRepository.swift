@@ -43,7 +43,7 @@ final class UserMemoRepository: UserMemoRepositoryType{
     }
     
     func fetchFilter(text: String) -> Results<UserMemo>{
-        return localRealm.objects(UserMemo.self).filter("allText CONTAINS[c] '\(text)'").sorted(byKeyPath: "regdate", ascending: false)
+        return localRealm.objects(UserMemo.self).filter("title CONTAINS[c] '\(text)'").sorted(byKeyPath: "regdate", ascending: false)
     }
     
     func fetchFilterPinned() -> Results<UserMemo>{
@@ -83,7 +83,6 @@ final class UserMemoRepository: UserMemoRepositoryType{
             let task = localRealm.object(ofType: UserMemo.self, forPrimaryKey: id)
             try localRealm.write {
                 task?.regdate = record.regdate
-                task?.allText = record.allText
                 task?.content = record.content
                 task?.title = record.title
             }
@@ -104,7 +103,7 @@ final class UserMemoRepository: UserMemoRepositoryType{
     }
     
     func deleteEmptyRecord(){
-        let emptyRealm = localRealm.objects(UserMemo.self).filter("allText == ''")
+        let emptyRealm = localRealm.objects(UserMemo.self).filter("title == ''")
         do{
             try localRealm.write{
                 localRealm.delete(emptyRealm)

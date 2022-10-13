@@ -41,7 +41,9 @@ final class MemoWriteViewController: BaseViewController{
         mainView.memoTextView.delegate = self
         
         if edit == true{
-            mainView.memoTextView.text = memo?.allText
+            guard let title = memo?.title else { return }
+            guard let content = memo?.content else { return }
+            mainView.memoTextView.text = "\(title)\n\(content)"
         }
         
         swipeRecognizer()
@@ -49,6 +51,11 @@ final class MemoWriteViewController: BaseViewController{
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
+
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         saveFunction()
     }
     
@@ -67,7 +74,6 @@ final class MemoWriteViewController: BaseViewController{
         shareButtonItem.tintColor = .orange
         self.navigationItem.rightBarButtonItems = [doneButtonItem, shareButtonItem]
         
-//        let backButtonItem = UIBarButtonItem(title: nil, style: .plain, target: self, action: #selector(doneButtonTapped))
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: nil, style: .plain, target: self, action: #selector(doneButtonTapped))
         
         self.navigationController?.navigationBar.prefersLargeTitles = false
@@ -77,7 +83,7 @@ final class MemoWriteViewController: BaseViewController{
     
     @objc func doneButtonTapped(){
         print(#function)
-        viewWillDisappear(true)
+        saveFunction()
     }
     
     func saveFunction(){
@@ -89,11 +95,11 @@ final class MemoWriteViewController: BaseViewController{
             if array.count == 2 {
                 titleText = String(array[0])
                 contentText = String(array[1])
-                let task = UserMemo(allText: content, title: titleText, content: contentText, regdate: Date())
+                let task = UserMemo(title: titleText, content: contentText, regdate: Date())
                 repository.updateRecord(id: id!, record: task)
             } else {
                 titleText = String(array[0])
-                let task = UserMemo(allText: content, title: titleText, content: "추가 텍스트 없음", regdate: Date())
+                let task = UserMemo(title: titleText, content: "", regdate: Date())
                 repository.updateRecord(id: id!, record: task)
             }
         } else {
@@ -102,11 +108,11 @@ final class MemoWriteViewController: BaseViewController{
             if array.count == 2 {
                 titleText = String(array[0])
                 contentText = String(array[1])
-                let task = UserMemo(allText: content, title: titleText, content: contentText, regdate: Date())
+                let task = UserMemo(title: titleText, content: contentText, regdate: Date())
                 repository.addRecord(record: task)
             } else {
                 titleText = String(array[0])
-                let task = UserMemo(allText: content, title: titleText, content: "추가 텍스트 없음", regdate: Date())
+                let task = UserMemo(title: titleText, content: "", regdate: Date())
                 repository.addRecord(record: task)
             }
         }

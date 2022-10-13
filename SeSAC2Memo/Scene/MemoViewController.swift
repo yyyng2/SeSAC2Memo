@@ -106,7 +106,6 @@ final class MemoViewController: BaseViewController{
     }
     
     @objc func backButtonTapped(){
-        //백버튼탭눌러서 팝 할시 메인화면 라지타이틀로 안돌아옴.. 완료버튼은 메인화면 라지타이틀정상 작동
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.popViewController(animated: true)
     }
@@ -287,7 +286,12 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 //                    cell.titleLabel.text = pinned[indexPath.row].title
                     cell.titleLabel.attributedText = NSAttributedString(string: pinned[indexPath.row].title)
                     dateCal(date: Date(), task: pinned, tag: indexPath, label: cell.dateLabel)
-                    cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: pinned, index: indexPath))
+                    
+                    if pinned[indexPath.row].content == "" {
+                        cell.contentLabel.attributedText = NSAttributedString(string: "추가 텍스트 없음")
+                    } else {
+                        cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: pinned, index: indexPath))
+                    }
                     
 //                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
 //                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
@@ -299,7 +303,13 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
 //                    cell.titleLabel.text = unPinned[indexPath.row].title
                     cell.titleLabel.attributedText = NSAttributedString(string: unPinned[indexPath.row].title)
                     dateCal(date: Date(), task: unPinned, tag: indexPath, label: cell.dateLabel)
-                    cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: unPinned, index: indexPath))
+                    
+                    if unPinned[indexPath.row].content == "" {
+                        cell.contentLabel.attributedText = NSAttributedString(string: "추가 텍스트 없음")
+                    } else {
+                        cell.contentLabel.attributedText = NSAttributedString(string: trimContentString(memo: unPinned, index: indexPath))
+                    }
+                 
             
 //                    cell.dateLabel.text = "\(pinned![indexPath.row].regdate)"
 //                    let trimString = pinned![indexPath.row].content!.filter {!"\n".contains($0)}
@@ -313,6 +323,13 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             
             let searchChangedTitleString = searchResults[indexPath.row].title
             let searchChangedContentString = trimContentString(memo: searchResults, index: indexPath)
+            
+            if searchChangedTitleString == "" {
+                cell.contentLabel.attributedText = NSAttributedString(string: "추가 텍스트 없음")
+            } else {
+                cell.contentLabel.attributedText = searchKeywordChangeColor(string: searchChangedContentString, label: cell.contentLabel, color: .orange)
+            }
+         
 
             cell.titleLabel.attributedText = searchKeywordChangeColor(string: searchChangedTitleString, label: cell.titleLabel, color: .orange)
             cell.contentLabel.attributedText = searchKeywordChangeColor(string: searchChangedContentString, label: cell.contentLabel, color: .orange)
@@ -322,9 +339,7 @@ extension MemoViewController: UITableViewDelegate, UITableViewDataSource{
             
             return cell
         }
-//        cell.titleLabel.text = searchResults[indexPath.row].title
-//        cell.dateLabel.text = "\(searchResults[indexPath.row].regdate)"
-//        cell.contentLabel.text = trimString
+
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

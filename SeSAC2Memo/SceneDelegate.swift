@@ -26,6 +26,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         navigationController.isToolbarHidden = false
         navigationController.toolbar.tintColor = .blue
         navigationController.navigationBar.prefersLargeTitles = true
+        navigationController.toolbar.backgroundColor = Constants.BaseColor.foreground
 
         
         window?.rootViewController = navigationController
